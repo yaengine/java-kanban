@@ -4,6 +4,7 @@ public class Main {
     static TaskManager taskManager = new TaskManager();
 
     public static void main(String[] args) {
+        tests();
         while (true) {
             Scanner scanner = new Scanner(System.in);
             printMenu();
@@ -190,5 +191,39 @@ public class Main {
         } else {
             System.out.println("Такого эпика не существует");
         }
+    }
+
+    public static void tests() {
+        String taskName;
+        String taskDesc;
+        int epicTaskId;
+        taskName = "taskName test 1";
+        taskDesc = "taskDesc test 1";
+        taskManager.setTask(new Task(taskName, taskDesc, taskManager.getNewId(), TaskStatuses.NEW));
+
+        taskName = "taskName test 2";
+        taskDesc = "taskDesc test 2";
+        taskManager.setTask(new Task(taskName, taskDesc, taskManager.getNewId(), TaskStatuses.NEW));
+
+        taskName = "EpicName test 1";
+        taskDesc = "EpicDesc test 1";
+        epicTaskId = taskManager.getNewId();
+        taskManager.setEpic(new Epic(taskName, taskDesc, epicTaskId, TaskStatuses.NEW));
+
+        taskName = "SubTaskName for epic " + epicTaskId + " test 1";
+        taskDesc = "SubTaskDesc for epic " + epicTaskId + " test 1";
+        taskManager.setSubTask(new SubTask(taskName, taskDesc, taskManager.getNewId(), TaskStatuses.NEW, epicTaskId));
+        taskName = "SubTaskName for epic " + epicTaskId + " test 2";
+        taskDesc = "SubTaskDesc for epic " + epicTaskId + " test 2";
+        taskManager.setSubTask(new SubTask(taskName, taskDesc, taskManager.getNewId(), TaskStatuses.IN_PROGRESS, epicTaskId));
+
+        taskName = "EpicName test 2";
+        taskDesc = "EpicDesc test 2";
+        epicTaskId = taskManager.getNewId();
+        taskManager.setEpic(new Epic(taskName, taskDesc, epicTaskId, TaskStatuses.NEW));
+
+        taskName = "SubTaskName for epic " + epicTaskId + " test 3";
+        taskDesc = "SubTaskDesc for epic " + epicTaskId + " test 3";
+        taskManager.setSubTask(new SubTask(taskName, taskDesc, taskManager.getNewId(), TaskStatuses.DONE, epicTaskId));
     }
 }
