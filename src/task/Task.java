@@ -23,6 +23,10 @@ public class Task {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public int getTaskId() {
         return taskId;
     }

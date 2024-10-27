@@ -19,21 +19,24 @@ public class TaskManager {
         idsCounter = 1;
     }
 
-    public void addTask(Task task) {
+    public Task addTask(Task task) {
         task.setTaskId(getNewId());
         tasks.put(task.getTaskId(), task);
+        return task;
     }
 
-    public void addSubTask(SubTask subTask) {
+    public SubTask addSubTask(SubTask subTask) {
         subTask.setTaskId(getNewId());
         subTasks.put(subTask.getTaskId(), subTask);
         getEpicById(subTask.getEpicTaskId()).addSubTaskId(subTask.getTaskId()); //Добавляем сабтаску эпику
         updateEpicStatus(subTask.getEpicTaskId());
+        return subTask;
     }
 
-    public void addEpic(Epic epic) {
+    public Epic addEpic(Epic epic) {
         epic.setTaskId(getNewId());
         epics.put(epic.getTaskId(), epic);
+        return epic;
     }
 
     public void updateTask(Task task) {
