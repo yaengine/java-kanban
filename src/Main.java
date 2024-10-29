@@ -77,7 +77,6 @@ public class Main {
         System.out.printf("Удалили задачу:%d и эпик:%d", taskToDel, epicToDel);
         System.out.println();
         printAllTasks();
-
     }
 
     public static void printAllTasks() {
