@@ -78,17 +78,6 @@ public class Main {
         System.out.println();
         printAllTasks();
 
-        System.out.println("Удалили подзадачи':");
-        taskManager.removeAllSubTasks();
-        printAllTasks();
-
-        System.out.println("Удалили эпики':");
-        taskManager.removeAllEpics();
-        printAllTasks();
-
-        System.out.println("Удалили задачи:");
-        taskManager.removeAllTasks();
-        printAllTasks();
     }
 
     public static void printAllTasks() {
