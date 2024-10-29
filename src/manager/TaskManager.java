@@ -76,9 +76,28 @@ public class TaskManager {
         return idsCounter++;
     }
 
-    public void removeAllTasks() {
+    public void removeAll() {
         epics.clear();
         tasks.clear();
+        subTasks.clear();
+    }
+
+    public void removeAllTasks() {
+        tasks.clear();
+    }
+
+    public void removeAllEpics() {
+        /*"Для каждой подзадачи известно, в рамках какого эпика она выполняется." =>
+           подзадач без эпиков быть не может => можем сразу удалить все подзадачи*/
+        subTasks.clear();
+        epics.clear();
+    }
+
+    public void removeAllSubTasks() {
+        //Вначале удалим сабтаску у эпика.
+        for (SubTask subTask: subTasks.values()) {
+            getEpicById(subTask.getEpicTaskId()).removeSubTaskId(subTask.getTaskId());
+        }
         subTasks.clear();
     }
 

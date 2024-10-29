@@ -13,10 +13,10 @@ public class Task {
     }
 
     public Task(String name, String description, TaskStatus status, int taskId) {
+        this.taskId = taskId;
         this.name = name;
         this.description = description;
         this.status = status;
-        this.taskId = taskId;
     }
 
     public String getName() {
