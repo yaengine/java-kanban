@@ -88,15 +88,21 @@ public class TaskManager {
 
     public void removeAllEpics() {
         /*"Для каждой подзадачи известно, в рамках какого эпика она выполняется." =>
-           подзадач без эпиков быть не может => можем сразу удалить все подзадачи*/
+         * подзадач без эпиков быть не может => можем сразу удалить все подзадачи*/
         subTasks.clear();
         epics.clear();
     }
 
     public void removeAllSubTasks() {
-        //Вначале удалим сабтаску у эпика.
-        for (SubTask subTask: subTasks.values()) {
-            getEpicById(subTask.getEpicTaskId()).removeSubTaskId(subTask.getTaskId());
+        //Т.к. удаляем все сабтаски, то можем просто очистить их списки у эпиков.
+        for (Epic epic: epics.values()) {
+            epic.getSubTaskIds().clear();
+            updateEpicStatus(epic.getTaskId());
+            /*Кажется что если подзадач больше нет, можем не считать статусы и сразу выставить NEW
+            * epic.setStatus(TaskStatus.NEW);
+            * Но, возможно, для унификации стоит оставить updateEpicStatus? Операция не выглядит дорогой
+            * в случае отсуствия сабтасков.
+            * */
         }
         subTasks.clear();
     }
