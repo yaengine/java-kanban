@@ -1,8 +1,9 @@
 import manager.TaskManager;
 import task.*;
+import util.Managers;
 
 public class Main {
-    static TaskManager taskManager = new TaskManager();
+    static TaskManager taskManager = Managers.getDefault();
 
     public static void main(String[] args) {
         tests();
@@ -82,6 +83,9 @@ public class Main {
     public static void printAllTasks() {
         for (Epic epic: taskManager.getEpics()) {
             System.out.println(epic.toString());
+            for (Task task : taskManager.getSubTasksByEpic(epic)) {
+                System.out.println("--> " + task);
+            }
         }
         for (Task task: taskManager.getTasks()) {
             System.out.println(task.toString());
@@ -89,6 +93,15 @@ public class Main {
         for (SubTask subTask: taskManager.getSubTasks()) {
             System.out.println(subTask.toString());
         }
+        System.out.println();
+        System.out.println("Печатаем историю");
+        printHistory();
         System.out.println("-".repeat(70));
+    }
+
+    public static void printHistory() {
+        for (Task task: taskManager.getHistory()) {
+            System.out.println(task.toString());
+        }
     }
 }
