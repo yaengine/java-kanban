@@ -91,8 +91,7 @@ public class InMemoryTaskManager implements TaskManager {
         return epicSubTasks;
     }
 
-    @Override
-    public Integer getNewId() {
+    private Integer getNewId() {
         return idsCounter++;
     }
 
@@ -178,8 +177,7 @@ public class InMemoryTaskManager implements TaskManager {
         return false;
     }
 
-    @Override
-    public void updateEpicStatus(int epicId) {
+    private void updateEpicStatus(int epicId) {
         Epic epic = getEpicById(epicId);
         List<SubTask> epicSubTasks = getSubTasksByEpic(epic);
         int newCounter = 0;

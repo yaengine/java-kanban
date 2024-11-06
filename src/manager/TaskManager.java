@@ -27,8 +27,6 @@ public interface TaskManager {
 
     List<SubTask> getSubTasksByEpic(Epic epic);
 
-    Integer getNewId();
-
     void removeAll();
 
     void removeAllTasks();
@@ -48,8 +46,6 @@ public interface TaskManager {
     boolean deleteSubTaskById(int taskId);
 
     boolean deleteEpicById(int taskId);
-
-    void updateEpicStatus(int epicId);
 
     List<Task> getHistory();
 }
