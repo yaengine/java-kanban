@@ -85,7 +85,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<SubTask> getSubTasksByEpic(Epic epic) {
         List<SubTask> epicSubTasks = new ArrayList<>();
-        for (int subTaskId: epic.getSubTaskIds()){
+        for (int subTaskId: epic.getSubTaskIds()) {
             epicSubTasks.add(getSubTaskById(subTaskId));
         }
         return epicSubTasks;
@@ -217,7 +217,7 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    private boolean isCorrectTaskId (int taskId) {
+    private boolean isCorrectTaskId(int taskId) {
         return (taskId >= 1 && taskId < idsCounter);
     }
 
