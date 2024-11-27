@@ -41,23 +41,23 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-    public void linkLast(Integer currTaskId, Node currNode){
+    public void linkLast(Integer currTaskId, Node currNode) {
         histNodes.put(currTaskId, currNode);
-        if (headTaskId != null){
+        if (headTaskId != null) {
             histNodes.put(currTaskId, histNodes.get(headTaskId).next = currNode);
         }
         headTaskId = currTaskId;
     }
 
-    public List getTasks(){
+    public List getTasks() {
         List<Task> history = new ArrayList<>();
-        for (Node node : histNodes.values()){
+        for (Node node : histNodes.values()) {
             history.add((Task) node.data);
         }
         return history;
     }
 
-    private void removeNode(Node taskNode, Integer taskId){
+    private void removeNode(Node taskNode, Integer taskId) {
         Node prNode = taskNode.prev;
         Node nxNode = taskNode.next;
 
@@ -71,7 +71,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
 
         prevNode = prNode;
-        if (headTaskId.equals(taskId)){
+        if (headTaskId.equals(taskId)) {
             if (prNode != null) {
                 Task prevData = (Task) prNode.data;
                 headTaskId = prevData.getTaskId();
