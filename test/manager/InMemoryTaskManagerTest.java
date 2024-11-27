@@ -11,6 +11,7 @@ import util.Managers;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTaskManagerTest {
 
@@ -123,11 +124,63 @@ class InMemoryTaskManagerTest {
         taskManager.getTaskById(taskId);
         assertEquals(1, taskManager.getHistory().size(), HISTORY_NOT_SAVED_ERR);
 
-        taskManager.updateTask(new Task(task.getName(), task.getDescription(), TaskStatus.IN_PROGRESS, task.getTaskId()));
         taskManager.getTaskById(taskId);
-        assertEquals(2, taskManager.getHistory().size(), HISTORY_NOT_SAVED_ERR);
+        assertEquals(1, taskManager.getHistory().size(), "Повторный просмотр не должен сохраняться в истории");
 
-        assertNotEquals(taskManager.getHistory().getFirst(), taskManager.getHistory().getLast(), "История не сохраняет предыдущую версию задачи");
+        Task otherTask = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.IN_PROGRESS);
+        taskManager.getTaskById(taskManager.addTask(otherTask).getTaskId());
+        assertEquals(2, taskManager.getHistory().size(), HISTORY_NOT_SAVED_ERR);
+    }
+
+    @Test
+    void checkDeleteTasksFromHistory() {
+        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
+        final int taskId = taskManager.addTask(task).getTaskId();
+        taskManager.getTaskById(taskId);
+        assertTrue(taskManager.getHistory().contains(task), "Просмотренная таска не попала в историю просмотра");
+
+        taskManager.deleteTaskById(task.getTaskId());
+        assertFalse(taskManager.getHistory().contains(task), "Удаленная таска осталась в истории");
+
+        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        final int epicId = taskManager.addEpic(epic).getTaskId();
+        taskManager.getEpicById(epicId);
+        assertTrue(taskManager.getHistory().contains(epic), "Просмотренный эпик не попал в историю просмотра");
+
+        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
+        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
+        taskManager.getSubTaskById(subTaskId);
+        assertTrue(taskManager.getHistory().contains(subTask), "Просмотренная подзадача не попала в историю просмотра");
+
+        taskManager.deleteEpicById(epicId);
+        assertFalse(taskManager.getHistory().contains(epic), "Удаленный эпик остался в истории");
+        assertFalse(taskManager.getHistory().contains(subTask), "Удаленная подзадача осталась в истории");
+    }
+
+    @Test
+    void deleteSubTasksShouldNotSaveOldIds() {
+        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        final int epicId = taskManager.addEpic(epic).getTaskId();
+
+        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
+        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
+        assertTrue(epic.getSubTaskIds().contains(subTaskId), "Подзадача не добавилась в эпик");
+
+        taskManager.deleteSubTaskById(subTaskId);
+        assertNull(subTask.getEpicTaskId(), "Удаляемые подзадачи не должны хранить внутри себя старые ID");
+    }
+
+    @Test
+    void deleteSubTasksShouldNotStayInEpic() {
+        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        final int epicId = taskManager.addEpic(epic).getTaskId();
+
+        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
+        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
+        assertTrue(epic.getSubTaskIds().contains(subTaskId), "Подзадача не добавилась в эпик");
+
+        taskManager.deleteSubTaskById(subTaskId);
+        assertFalse(epic.getSubTaskIds().contains(subTaskId), "ID подзадачи остался в эпике после удаления");
     }
 
 }
