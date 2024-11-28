@@ -5,7 +5,7 @@ import java.util.Objects;
 public class Task {
     protected String name;
     protected String description;
-    protected int taskId;
+    protected Integer taskId;
     protected TaskStatus status;
 
     public Task(String name, String description, TaskStatus status) {
