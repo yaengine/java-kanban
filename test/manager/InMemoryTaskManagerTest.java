@@ -133,15 +133,25 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void checkDeleteTasksFromHistory() {
+    void checkTaskInHistory() {
         Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
         final int taskId = taskManager.addTask(task).getTaskId();
         taskManager.getTaskById(taskId);
         assertTrue(taskManager.getHistory().contains(task), "Просмотренная таска не попала в историю просмотра");
+    }
+
+    @Test
+    void checkDeleteTasksFromHistory() {
+        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
+        final int taskId = taskManager.addTask(task).getTaskId();
+        taskManager.getTaskById(taskId);
 
         taskManager.deleteTaskById(task.getTaskId());
         assertFalse(taskManager.getHistory().contains(task), "Удаленная таска осталась в истории");
+    }
 
+    @Test
+    void checkDeleteEpicWithSubTaskFromHistory() {
         Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
         final int epicId = taskManager.addEpic(epic).getTaskId();
         taskManager.getEpicById(epicId);
@@ -158,13 +168,22 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void deleteSubTasksShouldNotSaveOldIds() {
+    void subTaskShouldAddsToEpic() {
         Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
         final int epicId = taskManager.addEpic(epic).getTaskId();
 
         SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
         final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
         assertTrue(epic.getSubTaskIds().contains(subTaskId), "Подзадача не добавилась в эпик");
+    }
+
+    @Test
+    void deleteSubTasksShouldNotSaveOldIds() {
+        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        final int epicId = taskManager.addEpic(epic).getTaskId();
+
+        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
+        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
 
         taskManager.deleteSubTaskById(subTaskId);
         assertNull(subTask.getEpicTaskId(), "Удаляемые подзадачи не должны хранить внутри себя старые ID");
@@ -177,10 +196,21 @@ class InMemoryTaskManagerTest {
 
         SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
         final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
-        assertTrue(epic.getSubTaskIds().contains(subTaskId), "Подзадача не добавилась в эпик");
 
         taskManager.deleteSubTaskById(subTaskId);
         assertFalse(epic.getSubTaskIds().contains(subTaskId), "ID подзадачи остался в эпике после удаления");
     }
 
+    @Test
+    void checkRemoveAllTasksFromHistory() {
+        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
+        final int taskId = taskManager.addTask(task).getTaskId();
+        taskManager.getTaskById(taskId);
+
+        Task otherTask = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.IN_PROGRESS);
+        taskManager.getTaskById(taskManager.addTask(otherTask).getTaskId());
+
+        taskManager.removeAllTasks();
+        assertTrue(taskManager.getHistory().isEmpty(), "История просмотров не пуста");
+    }
 }
