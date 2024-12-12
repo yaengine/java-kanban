@@ -173,6 +173,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     static class ManagerSaveException extends RuntimeException {
         ManagerSaveException(String message) {
             super(message);
-        };
+        }
     }
 }
