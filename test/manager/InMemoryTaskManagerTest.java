@@ -16,18 +16,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class InMemoryTaskManagerTest {
 
     TaskManager taskManager;
-    private final String TASK_NOT_FOUND_ERR = "Задача не найдена.";
-    private final String TASK_NOT_MATCH_ERR = "Задачи не совпадают.";
-    private final String TASK_NOT_RETURN_ERR = "Задачи не возвращаются.";
-    private final String INCORRECT_NUM_OF_TASK_ERR = "Неверное количество задач.";
-    private final String HISTORY_NOT_SAVED_ERR = "Не сохраняется история просмотров";
+    protected final String TASK_NOT_FOUND_ERR = "Задача не найдена.";
+    protected final String TASK_NOT_MATCH_ERR = "Задачи не совпадают.";
+    protected final String TASK_NOT_RETURN_ERR = "Задачи не возвращаются.";
+    protected final String INCORRECT_NUM_OF_TASK_ERR = "Неверное количество задач.";
+    protected final String HISTORY_NOT_SAVED_ERR = "Не сохраняется история просмотров";
 
-    private final String NEW_TASK_NAME = "Test addNewTask";
-    private final String NEW_TASK_DESC = "Test addNewTask description";
-    private final String NEW_SUBTASK_NAME = "Test addNewSubTask";
-    private final String NEW_SUBTASK_DESC = "Test addNewSubTask description";
-    private final String NEW_EPIC_NAME = "Test addNewEpicTask";
-    private final String NEW_EPIC_DESC = "Test addNewEpicTask description";
+    protected final String NEW_TASK_NAME = "Test addNewTask";
+    protected final String NEW_TASK_DESC = "Test addNewTask description";
+    protected final String NEW_SUBTASK_NAME = "Test addNewSubTask";
+    protected final String NEW_SUBTASK_DESC = "Test addNewSubTask description";
+    protected final String NEW_EPIC_NAME = "Test addNewEpicTask";
+    protected final String NEW_EPIC_DESC = "Test addNewEpicTask description";
 
 
     @BeforeEach

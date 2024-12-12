@@ -47,12 +47,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + ": {" +
-                "Номер: " + taskId +
-                ", Имя: '" + name + '\'' +
-                ", Описание: '" + description + '\'' +
-                ", Статус: " + status +
-                '}';
+        return String.format("%d,%s,%s,%s,%s,", taskId, TaskType.TASK, name, status, description);
     }
 
     @Override
