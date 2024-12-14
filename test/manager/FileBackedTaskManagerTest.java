@@ -1,21 +1,20 @@
 package manager;
 
+import exceptions.ManagerSaveException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import task.*;
 import util.Managers;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
 
+import static manager.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest extends InMemoryTaskManagerTest{
-    private static final String FILE_PREFIX = "kanban";
-    private static final String FILE_POSTFIX = ".csv";
+class FileBackedTaskManagerTest {
+
     File file;
+    FileBackedTaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {
@@ -23,7 +22,7 @@ class FileBackedTaskManagerTest extends InMemoryTaskManagerTest{
             file = File.createTempFile(FILE_PREFIX, FILE_POSTFIX);
             taskManager = Managers.getFileBackedTaskManager(file);
         } catch (IOException e) {
-            throw new FileBackedTaskManager.ManagerSaveException("Ошибка создания файла в тестах");
+            throw new ManagerSaveException("Ошибка создания файла в тестах");
         }
     }
     @Test
@@ -63,20 +62,85 @@ class FileBackedTaskManagerTest extends InMemoryTaskManagerTest{
     void loadFromFileTest() {
         try (Writer fileWriter = new FileWriter(file)) {
             fileWriter.append("id,type,name,status,description,epic")
-                    .append(String.format("%n"))
-                    .append("1,TASK,Test addNewTask,NEW,Test addNewTask description,")
-                    .append(String.format("%n"))
-                    .append("2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description,")
-                    .append(String.format("%n"))
-                    .append("3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2")
-                    .append(String.format("%n"));
+                      .append(String.format("%n"))
+                      .append("1,TASK,Test addNewTask,NEW,Test addNewTask description,")
+                      .append(String.format("%n"))
+                      .append("2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description,")
+                      .append(String.format("%n"))
+                      .append("3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2")
+                      .append(String.format("%n"));
         } catch (IOException e) {
-            throw new FileBackedTaskManager.ManagerSaveException("Ошибка при заполнении файла в тесте!");
+            throw new ManagerSaveException("Ошибка при заполнении файла в тесте!");
         }
-        InMemoryTaskManager memoryTaskManager = FileBackedTaskManager.loadFromFile(file);
 
-        assertNotNull(memoryTaskManager.getTaskById(1));
-        assertNotNull(memoryTaskManager.getEpicById(2));
-        assertNotNull(memoryTaskManager.getSubTaskById(3));
+        taskManager = FileBackedTaskManager.loadFromFile(file);
+
+        assertNotNull(taskManager.getTaskById(1));
+        assertNotNull(taskManager.getEpicById(2));
+        assertNotNull(taskManager.getSubTaskById(3));
+    }
+
+    @Test
+    void saveToFileTest() {
+        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
+        taskManager.addTask(task).getTaskId();
+        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        final int epicId = taskManager.addEpic(epic).getTaskId();
+        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
+        taskManager.addSubTask(subTask).getTaskId();
+        String fileContent = "";
+
+        try (FileReader reader = new FileReader(file.getName())) {
+            BufferedReader br = new BufferedReader(reader);
+
+            while (br.ready()) {
+                fileContent = fileContent.concat(br.readLine());
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        assertEquals("id,type,name,status,description,epic" +
+                        "1,TASK,Test addNewTask,NEW,Test addNewTask description," +
+                        "2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description," +
+                        "3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2", fileContent);
+    }
+
+    @Test
+    void loadFromEmptyFileTest() {
+        try (Writer fileWriter = new FileWriter(file)) {
+            fileWriter.append("id,type,name,status,description,epic")
+                      .append(String.format("%n"));
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при заполнении файла в тесте!");
+        }
+        taskManager = FileBackedTaskManager.loadFromFile(file);
+
+        assertTrue(taskManager.getTasks().isEmpty());
+        assertTrue(taskManager.getEpics().isEmpty());
+        assertTrue(taskManager.getSubTasks().isEmpty());
+    }
+
+    @Test
+    void saveToFileVoidDataTest() {
+        String fileContent = "";
+
+        taskManager.save();
+
+        try (FileReader reader = new FileReader(file.getName())) {
+            BufferedReader br = new BufferedReader(reader);
+
+            while (br.ready()) {
+                fileContent = fileContent.concat(br.readLine());
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        assertEquals("id,type,name,status,description,epic", fileContent);
     }
 }

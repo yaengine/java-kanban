@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.ManagerSaveException;
 import task.*;
 
 import java.io.File;
@@ -42,8 +43,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
     }
 
-    public static InMemoryTaskManager loadFromFile(File file) {
-        InMemoryTaskManager taskManager = new InMemoryTaskManager();
+    public static FileBackedTaskManager loadFromFile(File file) {
+        FileBackedTaskManager taskManager = new FileBackedTaskManager(file);
         String fileContent;
         boolean isFirstString = true;
         try {
@@ -54,7 +55,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String[] fileContents = fileContent.split(String.format("%n"));
         for (String fContent: fileContents) {
             if (!isFirstString) {
-                Task task = fromString(fContent);
+                Task task = taskManager.fromString(fContent);
                 if (task instanceof Epic) {
                     taskManager.epics.put(task.getTaskId(),(Epic) task);
                 } else if (task instanceof SubTask) {
@@ -73,15 +74,23 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         return taskManager;
     }
 
-    private static Task fromString(String value) {
+    private Task fromString(String value) {
         Task retTask = null;
         String[] values = value.split(",");
-        if (values[1].equals(TaskType.TASK.name())) {
-            retTask = new Task(values[2], values[4], TaskStatus.valueOf(values[3]), Integer.parseInt(values[0]));
-        } else if (values[1].equals(TaskType.EPIC.name())) {
-            retTask = new Epic(values[2], values[4], TaskStatus.valueOf(values[3]), Integer.parseInt(values[0]), new ArrayList<>());
-        } else if (values[1].equals(TaskType.SUBTASK.name())) {
-            retTask = new SubTask(values[2], values[4], TaskStatus.valueOf(values[3]), Integer.parseInt(values[5]), Integer.parseInt(values[0]));
+        Integer taskId = Integer.parseInt(values[0]);
+        String taskType = values[1];
+        String name = values[2];
+        TaskStatus status = TaskStatus.valueOf(values[3]);
+        String description = values[4];
+        Integer epicTaskId;
+
+        if (taskType.equals(TaskType.TASK.name())) {
+            retTask = new Task(name, description, status, taskId);
+        } else if (taskType.equals(TaskType.EPIC.name())) {
+            retTask = new Epic(name, description, status, taskId, new ArrayList<>());
+        } else if (taskType.equals(TaskType.SUBTASK.name())) {
+            epicTaskId = Integer.parseInt(values[5]);
+            retTask = new SubTask(name, description, status, epicTaskId, taskId);
         }
         return retTask;
     }
@@ -168,11 +177,5 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         boolean isDel = super.deleteEpicById(taskId);
         save();
         return isDel;
-    }
-
-    static class ManagerSaveException extends RuntimeException {
-        ManagerSaveException(String message) {
-            super(message);
-        }
     }
 }
