@@ -8,10 +8,10 @@ import java.util.HashMap;
 import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
-    private int idsCounter;
-    private HashMap<Integer, Task> tasks;
-    private HashMap<Integer, SubTask> subTasks;
-    private HashMap<Integer, Epic> epics;
+    protected int idsCounter;
+    protected HashMap<Integer, Task> tasks;
+    protected HashMap<Integer, SubTask> subTasks;
+    protected HashMap<Integer, Epic> epics;
     private HistoryManager historyManager;
 
     public InMemoryTaskManager() {
