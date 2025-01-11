@@ -8,197 +8,100 @@ import task.Task;
 import task.TaskStatus;
 import util.Managers;
 
-import java.util.List;
-
 import static manager.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InMemoryTaskManagerTest {
-
-    TaskManager taskManager;
+class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @BeforeEach
     void beforeEach() {
-        taskManager = Managers.getDefault();
-    }
+        super.taskManager = (InMemoryTaskManager) Managers.getDefault();
 
-    @Test
-    void shouldAddTaskInAndGet1BackFromManager() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-
-        final Task savedTask = taskManager.getTaskById(taskId);
-
-        assertNotNull(savedTask, TASK_NOT_FOUND_ERR);
-        assertEquals(task, savedTask, TASK_NOT_MATCH_ERR);
-
-        final List<Task> tasks = taskManager.getTasks();
-
-        assertNotNull(tasks, TASK_NOT_RETURN_ERR);
-        assertEquals(1, tasks.size(), INCORRECT_NUM_OF_TASK_ERR);
-        assertEquals(task, tasks.getFirst(), TASK_NOT_MATCH_ERR);
-    }
-
-    @Test
-    void shouldAddEpicTaskInAndGet1BackFromManager() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        final Epic savedEpic = taskManager.getEpicById(epicId);
-
-        assertNotNull(savedEpic, TASK_NOT_FOUND_ERR);
-        assertEquals(epic, savedEpic, TASK_NOT_MATCH_ERR);
-
-        final List<Epic> epics = taskManager.getEpics();
-
-        assertNotNull(epics, TASK_NOT_RETURN_ERR);
-        assertEquals(1, epics.size(), INCORRECT_NUM_OF_TASK_ERR);
-        assertEquals(epic, epics.getFirst(), TASK_NOT_MATCH_ERR);
-    }
-
-    @Test
-    void shouldAddSubTaskInAndGet1BackFromManager() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int SubTaskId = taskManager.addSubTask(subTask).getTaskId();
-
-        final SubTask savedSubTask = taskManager.getSubTaskById(SubTaskId);
-
-        assertNotNull(savedSubTask, TASK_NOT_FOUND_ERR);
-        assertEquals(subTask, savedSubTask, TASK_NOT_MATCH_ERR);
-
-        final List<SubTask> subTasks = taskManager.getSubTasks();
-
-        assertNotNull(subTasks, TASK_NOT_RETURN_ERR);
-        assertEquals(1, subTasks.size(), INCORRECT_NUM_OF_TASK_ERR);
-        assertEquals(subTask, subTasks.getFirst(), TASK_NOT_MATCH_ERR);
+        super.task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME, NEW_TASK_DURATION);
+        super.taskId = taskManager.addTask(task).getTaskId();
+        super.epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+        super.epicId = taskManager.addEpic(epic).getTaskId();
+        super.subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        super.subTaskId = taskManager.addSubTask(subTask).getTaskId();
     }
 
     @Test
     void canNotAddEpicToHimself() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
         epic.addSubTaskId(epicId);
-        assertTrue(epic.getSubTaskIds().isEmpty(), "Эпик добавился сам в свои подзадачи");
+        assertFalse(epic.getSubTaskIds().contains(epicId), "Эпик добавился сам в свои подзадачи");
     }
 
     @Test
     void setIdAndGenerateIdNotConflictCheck() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-
-        taskManager.updateTask(new Task(task.getName(), task.getDescription(), task.getStatus(), taskId + 1));
+        taskManager.removeAll();
+        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME, NEW_TASK_DURATION);
+        int taskId = taskManager.addTask(task).getTaskId();
+        taskManager.updateTask(new Task(task.getName(), task.getDescription(), task.getStatus(), taskId + 1, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION));
         assertNull(taskManager.getTaskById(taskId + 1), "Удалось добавить в taskManager задачу с " +
                                                                 "опережающим счетчик номером, что приведет к конфликту");
     }
 
     @Test
     void immutabilityTaskCheck() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-        Task taskRef = new Task(task.getName(), task.getDescription(), task.getStatus(), taskId);
+        Task taskRef = new Task(task.getName(), task.getDescription(), task.getStatus(), taskId, NEW_TASK_START_TIME, NEW_TASK_DURATION);
 
         assertEquals(task, taskRef, "Задача поменялась при добавлении в taskManager");
     }
 
     @Test
-    void historyVersionCheck() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-        taskManager.getTaskById(taskId);
-        assertEquals(1, taskManager.getHistory().size(), HISTORY_NOT_SAVED_ERR);
-
-        taskManager.getTaskById(taskId);
-        assertEquals(1, taskManager.getHistory().size(), "Повторный просмотр не должен сохраняться в истории");
-
-        Task otherTask = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.IN_PROGRESS);
-        taskManager.getTaskById(taskManager.addTask(otherTask).getTaskId());
-        assertEquals(2, taskManager.getHistory().size(), HISTORY_NOT_SAVED_ERR);
-    }
-
-    @Test
-    void checkTaskInHistory() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-        taskManager.getTaskById(taskId);
-        assertTrue(taskManager.getHistory().contains(task), "Просмотренная таска не попала в историю просмотра");
-    }
-
-    @Test
-    void checkDeleteTasksFromHistory() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-        taskManager.getTaskById(taskId);
-
-        taskManager.deleteTaskById(task.getTaskId());
-        assertFalse(taskManager.getHistory().contains(task), "Удаленная таска осталась в истории");
-    }
-
-    @Test
-    void checkDeleteEpicWithSubTaskFromHistory() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-        taskManager.getEpicById(epicId);
-        assertTrue(taskManager.getHistory().contains(epic), "Просмотренный эпик не попал в историю просмотра");
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
-        taskManager.getSubTaskById(subTaskId);
-        assertTrue(taskManager.getHistory().contains(subTask), "Просмотренная подзадача не попала в историю просмотра");
-
-        taskManager.deleteEpicById(epicId);
-        assertFalse(taskManager.getHistory().contains(epic), "Удаленный эпик остался в истории");
-        assertFalse(taskManager.getHistory().contains(subTask), "Удаленная подзадача осталась в истории");
-    }
-
-    @Test
     void subTaskShouldAddsToEpic() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
         assertTrue(epic.getSubTaskIds().contains(subTaskId), "Подзадача не добавилась в эпик");
     }
 
     @Test
+    void canNotAddSubTaskToHimselfEpic() {
+        taskManager.updateSubTask(new SubTask(subTask.getName(), subTask.getDescription(), subTask.getStatus(), subTaskId,
+                subTaskId, subTask.getStartTime(), subTask.getDuration()));
+        assertNotEquals(taskManager.getSubTaskById(subTaskId).getEpicTaskId(), subTaskId, "Подзадача добавилась в свой эпик");
+    }
+
+    @Test
     void deleteSubTasksShouldNotSaveOldIds() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
-
         taskManager.deleteSubTaskById(subTaskId);
         assertNull(subTask.getEpicTaskId(), "Удаляемые подзадачи не должны хранить внутри себя старые ID");
     }
 
     @Test
     void deleteSubTasksShouldNotStayInEpic() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int subTaskId = taskManager.addSubTask(subTask).getTaskId();
-
         taskManager.deleteSubTaskById(subTaskId);
         assertFalse(epic.getSubTaskIds().contains(subTaskId), "ID подзадачи остался в эпике после удаления");
     }
 
     @Test
-    void checkRemoveAllTasksFromHistory() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-        taskManager.getTaskById(taskId);
+    void checkEpicStatusForAllSubTasksWithStatusNEW() {
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        taskManager.addSubTask(subTask1).getTaskId();
 
-        Task otherTask = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.IN_PROGRESS);
-        taskManager.getTaskById(taskManager.addTask(otherTask).getTaskId());
+        assertEquals(epic.getStatus(),TaskStatus.NEW, "Статус эпика не NEW");
+    }
 
-        taskManager.removeAllTasks();
-        assertTrue(taskManager.getHistory().isEmpty(), "История просмотров не пуста");
+    @Test
+    void checkEpicStatusForAllSubTasksWithStatusDone() {
+        taskManager.updateSubTask(new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.DONE, epicId, subTaskId, subTask.getStartTime(), subTask.getDuration()));
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.DONE, epicId, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
+        taskManager.addSubTask(subTask1).getTaskId();
+
+        assertEquals(epic.getStatus(),TaskStatus.DONE, "Статус эпика не DONE");
+    }
+
+    @Test
+    void checkEpicStatusForSubTasksWithStatusNewAndDone() {
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.DONE, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        taskManager.addSubTask(subTask1).getTaskId();
+
+        assertEquals(epic.getStatus(),TaskStatus.IN_PROGRESS, "Статус эпика не IN_PROGRESS");
+    }
+
+    @Test
+    void checkEpicStatusForSubTasksWithStatusInProgress() {
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.IN_PROGRESS, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        taskManager.addSubTask(subTask1).getTaskId();
+
+        assertEquals(epic.getStatus(),TaskStatus.IN_PROGRESS, "Статус эпика не IN_PROGRESS");
     }
 }
