@@ -35,6 +35,6 @@ public class Epic extends Task {
     @Override
     public String toString() {
         return String.format("%d,%s,%s,%s,%s,%s,%d", taskId, TaskType.EPIC, name, status, description, startTime,
-                startTime == null?Duration.ZERO.toMinutes():Duration.between(startTime, getEndTime()).toMinutes());
+                startTime == null ? Duration.ZERO.toMinutes() : Duration.between(startTime, getEndTime()).toMinutes());
     }
 }

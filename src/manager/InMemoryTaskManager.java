@@ -281,7 +281,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void updateEpicStartTime(int epicId) {
         Epic epic = getEpicById(epicId);
-        epic.setStartTime(sortedSubTasks.isEmpty()?null:sortedSubTasks.first().getStartTime());
+        epic.setStartTime(sortedSubTasks.isEmpty() ? null : sortedSubTasks.first().getStartTime());
     }
 
     private void updateEpicDuration(int epicId) {
