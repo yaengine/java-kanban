@@ -9,12 +9,12 @@ import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     protected int idsCounter;
-    protected HashMap<Integer, Task> tasks;
-    protected HashMap<Integer, SubTask> subTasks;
-    protected HashMap<Integer, Epic> epics;
+    protected Map<Integer, Task> tasks;
+    protected Map<Integer, SubTask> subTasks;
+    protected Map<Integer, Epic> epics;
     private HistoryManager historyManager;
-    private TreeSet<Task> sortedTasks;
-    private TreeSet<SubTask> sortedSubTasks;
+    private Set<Task> sortedTasks;
+    private Set<SubTask> sortedSubTasks;
     private static final String TASK_CROSS_ERROR = "Ошибка! Задача имеет пересечение по времени выполнения!";
 
     public InMemoryTaskManager() {
@@ -281,7 +281,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     private void updateEpicStartTime(int epicId) {
         Epic epic = getEpicById(epicId);
-        epic.setStartTime(sortedSubTasks.isEmpty() ? null : sortedSubTasks.first().getStartTime());
+        sortedSubTasks.stream()
+                .findFirst()
+                .ifPresentOrElse(t -> epic.setStartTime(t.getStartTime()),
+                                () -> epic.setStartTime(null));
     }
 
     private void updateEpicDuration(int epicId) {
@@ -292,9 +295,9 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public TreeSet<Task> getPrioritizedTasks() {
-        TreeSet<Task> retSet = sortedTasks;
-        retSet.addAll(sortedSubTasks);
-        return retSet;
+        TreeSet<Task> priorTasks = (TreeSet<Task>) sortedTasks;
+        priorTasks.addAll(sortedSubTasks);
+        return priorTasks;
     }
 
     public boolean isCrossTask(Task task) {
