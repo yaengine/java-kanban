@@ -11,63 +11,45 @@ import java.io.*;
 import static manager.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class FileBackedTaskManagerTest {
-
-    File file;
-    FileBackedTaskManager taskManager;
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
 
     @BeforeEach
     void beforeEach() {
         try {
-            file = File.createTempFile(FILE_PREFIX, FILE_POSTFIX);
-            taskManager = Managers.getFileBackedTaskManager(file);
+            super.file = File.createTempFile(FILE_PREFIX, FILE_POSTFIX);
+            super.taskManager = Managers.getFileBackedTaskManager(file);
+
+            super.task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME, NEW_TASK_DURATION);
+            super.taskId = taskManager.addTask(task).getTaskId();
+            super.epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
+            super.epicId = taskManager.addEpic(epic).getTaskId();
+            super.subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+            super.subTaskId = taskManager.addSubTask(subTask).getTaskId();
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка создания файла в тестах");
         }
     }
-    @Test
-    void shouldAddTaskInAndGet1BackFromFileManager() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        final int taskId = taskManager.addTask(task).getTaskId();
-
-        final Task savedTask = taskManager.getTaskById(taskId);
-
-        assertNotNull(savedTask, TASK_NOT_FOUND_ERR);
-        assertEquals(task, savedTask, TASK_NOT_MATCH_ERR);
-    }
 
     @Test
     void addEpicTaskAndSubTaskForHimShouldReturnSameEpicId() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int SubTaskId = taskManager.addSubTask(subTask).getTaskId();
-
         assertEquals(subTask.getEpicTaskId(), epicId);
     }
 
     @Test
     void addEpicTaskAndSubTaskForHimShouldReturnSameSubTaskId() {
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        final int SubTaskId = taskManager.addSubTask(subTask).getTaskId();
-
-        assertEquals(epic.getSubTaskIds().getFirst(), SubTaskId);
+        assertEquals(epic.getSubTaskIds().getFirst(), subTaskId);
     }
 
     @Test
     void loadFromFileTest() {
         try (Writer fileWriter = new FileWriter(file)) {
-            fileWriter.append("id,type,name,status,description,epic")
+            fileWriter.append("id,type,name,status,description,startTime,duration,epic")
                       .append(String.format("%n"))
-                      .append("1,TASK,Test addNewTask,NEW,Test addNewTask description,")
+                      .append("1,TASK,Test addNewTask,NEW,Test addNewTask description,2025-01-01T00:00,60")
                       .append(String.format("%n"))
-                      .append("2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description,")
+                      .append("2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description,2025-01-01T01:00,60")
                       .append(String.format("%n"))
-                      .append("3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2")
+                      .append("3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2025-01-01T01:00,60,2")
                       .append(String.format("%n"));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при заполнении файла в тесте!");
@@ -81,13 +63,16 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
+    void throwExceptionWhenLoadFromFileTest() {
+        assertThrows(ManagerSaveException.class, ()-> {
+            file = new File("");
+            taskManager = FileBackedTaskManager.loadFromFile(file);
+        }, "Попытка загрузить пустой файл должна приводить к исключению");
+
+    }
+
+    @Test
     void saveToFileTest() {
-        Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW);
-        taskManager.addTask(task).getTaskId();
-        Epic epic = new Epic(NEW_EPIC_NAME, NEW_EPIC_DESC, TaskStatus.NEW);
-        final int epicId = taskManager.addEpic(epic).getTaskId();
-        SubTask subTask = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId);
-        taskManager.addSubTask(subTask).getTaskId();
         String fileContent = "";
 
         try (FileReader reader = new FileReader(file.getName())) {
@@ -102,16 +87,16 @@ class FileBackedTaskManagerTest {
             throw new RuntimeException(e);
         }
 
-        assertEquals("id,type,name,status,description,epic" +
-                        "1,TASK,Test addNewTask,NEW,Test addNewTask description," +
-                        "2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description," +
-                        "3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2", fileContent);
+        assertEquals("id,type,name,status,description,startTime,duration,epic" +
+                        "1,TASK,Test addNewTask,NEW,Test addNewTask description,2025-01-01T00:00,60" +
+                        "2,EPIC,Test addNewEpicTask,NEW,Test addNewEpicTask description,2025-01-01T01:00,60" +
+                        "3,SUBTASK,Test addNewSubTask,NEW,Test addNewSubTask description,2025-01-01T01:00,60,2", fileContent);
     }
 
     @Test
     void loadFromEmptyFileTest() {
         try (Writer fileWriter = new FileWriter(file)) {
-            fileWriter.append("id,type,name,status,description,epic")
+            fileWriter.append("id,type,name,status,description,startTime,duration,epic")
                       .append(String.format("%n"));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при заполнении файла в тесте!");
@@ -125,6 +110,7 @@ class FileBackedTaskManagerTest {
 
     @Test
     void saveToFileVoidDataTest() {
+        taskManager.removeAll();
         String fileContent = "";
 
         taskManager.save();
@@ -141,6 +127,6 @@ class FileBackedTaskManagerTest {
             throw new RuntimeException(e);
         }
 
-        assertEquals("id,type,name,status,description,epic", fileContent);
+        assertEquals("id,type,name,status,description,startTime,duration,epic", fileContent);
     }
 }

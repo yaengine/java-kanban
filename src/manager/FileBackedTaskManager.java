@@ -8,6 +8,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
@@ -20,7 +22,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public void save() {
         try (Writer fileWriter = new FileWriter(file.getName())) {
-            fileWriter.append("id,type,name,status,description,epic");
+            fileWriter.append("id,type,name,status,description,startTime,duration,epic");
             fileWriter.append(String.format("%n"));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка при сохранении в файл!");
@@ -82,15 +84,17 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String name = values[2];
         TaskStatus status = TaskStatus.valueOf(values[3]);
         String description = values[4];
+        LocalDateTime startTime = LocalDateTime.parse(values[5]);
+        Duration duration = Duration.ofMinutes(Long.parseLong(values[6]));
         Integer epicTaskId;
 
         if (taskType.equals(TaskType.TASK.name())) {
-            retTask = new Task(name, description, status, taskId);
+            retTask = new Task(name, description, status, taskId, startTime, duration);
         } else if (taskType.equals(TaskType.EPIC.name())) {
-            retTask = new Epic(name, description, status, taskId, new ArrayList<>());
+            retTask = new Epic(name, description, status, taskId, new ArrayList<>(), startTime, duration);
         } else if (taskType.equals(TaskType.SUBTASK.name())) {
-            epicTaskId = Integer.parseInt(values[5]);
-            retTask = new SubTask(name, description, status, epicTaskId, taskId);
+            epicTaskId = Integer.parseInt(values[7]);
+            retTask = new SubTask(name, description, status, epicTaskId, taskId, startTime, duration);
         }
         return retTask;
     }
