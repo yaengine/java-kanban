@@ -74,7 +74,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @Test
     void checkEpicStatusForAllSubTasksWithStatusNEW() {
-        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
         taskManager.addSubTask(subTask1).getTaskId();
 
         assertEquals(epic.getStatus(),TaskStatus.NEW, "Статус эпика не NEW");
@@ -91,7 +91,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @Test
     void checkEpicStatusForSubTasksWithStatusNewAndDone() {
-        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.DONE, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.DONE, epicId, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
         taskManager.addSubTask(subTask1).getTaskId();
 
         assertEquals(epic.getStatus(),TaskStatus.IN_PROGRESS, "Статус эпика не IN_PROGRESS");
@@ -99,7 +99,7 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
 
     @Test
     void checkEpicStatusForSubTasksWithStatusInProgress() {
-        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.IN_PROGRESS, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.IN_PROGRESS, epicId, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
         taskManager.addSubTask(subTask1).getTaskId();
 
         assertEquals(epic.getStatus(),TaskStatus.IN_PROGRESS, "Статус эпика не IN_PROGRESS");

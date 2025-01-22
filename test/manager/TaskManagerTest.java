@@ -105,7 +105,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void removeAllTasks() {
-        Task task1 = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        Task task1 = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
         final int taskId1 = taskManager.addTask(task1).getTaskId();
 
         taskManager.removeAllTasks();
@@ -125,7 +125,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void removeAllSubTasks() {
-        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION);
+        SubTask subTask1 = new SubTask(NEW_SUBTASK_NAME, NEW_SUBTASK_DESC, TaskStatus.NEW, epicId, NEW_TASK_START_TIME.plusHours(2), NEW_TASK_DURATION);
         final int subTaskId1 = taskManager.addSubTask(subTask1).getTaskId();
 
         taskManager.removeAllSubTasks();
