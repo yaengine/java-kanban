@@ -17,13 +17,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 public class BaseHttpHandler  {
-    protected final static Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    protected final static String ENDPOINT_UNKNOWN_ERR = "Такого эндпоинта не существует";
-    protected final static String ILLEGAL_ID_ERR = "Некорректный id";
-    protected final static String ILLEGAL_JSON_ERR = "Некорректный JSON";
-    protected final static String TASK_ADD = "Задача успешно добавлена";
-    protected final static String TASK_UPDATED = "Задача успешно обновлена";
-    protected final static String TASK_DELETED = "Задача успешно удалена";
+    protected static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+    protected static final String ENDPOINT_UNKNOWN_ERR = "Такого эндпоинта не существует";
+    protected static final String ILLEGAL_ID_ERR = "Некорректный id";
+    protected static final String ILLEGAL_JSON_ERR = "Некорректный JSON";
+    protected static final String TASK_ADD = "Задача успешно добавлена";
+    protected static final String TASK_UPDATED = "Задача успешно обновлена";
+    protected static final String TASK_DELETED = "Задача успешно удалена";
 
     protected LocalDateTimeTypeAdapter localDateTimeTypeAdapter = new LocalDateTimeTypeAdapter();
     protected LocalDurationTypeAdapter localDurationTypeAdapter = new LocalDurationTypeAdapter();
@@ -98,15 +98,15 @@ public class BaseHttpHandler  {
         return Endpoint.UNKNOWN;
     }
 
-    protected String errToJson (String text) {
+    protected String errToJson(String text) {
         return "{\"error\": \"" + text + "\"}";
     }
 
-    protected String successToJson (String text) {
+    protected String successToJson(String text) {
         return "{\"success\": \"" + text + "\"}";
     }
 
-    protected Optional<Integer> getId (HttpExchange httpExchange) {
+    protected Optional<Integer> getId(HttpExchange httpExchange) {
         String[] pathParts = httpExchange.getRequestURI().getPath().split("/");
         try {
             return Optional.of(Integer.parseInt(pathParts[2]));
@@ -115,7 +115,7 @@ public class BaseHttpHandler  {
         }
     }
 
-    protected <T> String taskToJson (T task) {
+    protected <T> String taskToJson(T task) {
 
         GsonBuilder gsonBuilder = new GsonBuilder().serializeNulls();
         gsonBuilder.registerTypeAdapter(LocalDateTime.class, localDateTimeTypeAdapter.nullSafe());
