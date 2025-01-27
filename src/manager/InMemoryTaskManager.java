@@ -9,6 +9,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
+    public final static String TASK_NOT_FOUND_ERR = "Задача не найдена";
+    public final static String SUBTASK_NOT_FOUND_ERR = "Подзадача не найдена";
+    public final static String EPIC_NOT_FOUND_ERR = "Эпик не найден";
     protected int idsCounter;
     protected Map<Integer, Task> tasks;
     protected Map<Integer, SubTask> subTasks;
@@ -17,9 +20,6 @@ public class InMemoryTaskManager implements TaskManager {
     private Set<Task> sortedTasks;
     private Set<SubTask> sortedSubTasks;
     public static final String TASK_CROSS_ERROR = "Ошибка! Задача имеет пересечение по времени выполнения!";
-    public final static String TASK_NOT_FOUND_ERR = "Задача не найдена";
-    public final static String SUBTASK_NOT_FOUND_ERR = "Подзадача не найдена";
-    public final static String EPIC_NOT_FOUND_ERR = "Эпик не найден";
 
     public InMemoryTaskManager() {
         this.tasks = new HashMap<>();
