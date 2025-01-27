@@ -1,4 +1,4 @@
-package httpServer;
+package httpserver;
 
 import com.sun.net.httpserver.HttpServer;
 import manager.TaskManager;

@@ -1,4 +1,4 @@
-package httpServer;
+package httpserver;
 
 import com.google.gson.reflect.TypeToken;
 import manager.InMemoryTaskManager;
@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static httpServer.BaseHttpHandler.TASK_UPDATED;
+import static httpserver.BaseHttpHandler.TASK_UPDATED;
 import static manager.InMemoryTaskManager.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static util.TestConstants.*;

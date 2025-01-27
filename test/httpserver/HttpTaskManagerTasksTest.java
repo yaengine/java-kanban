@@ -1,4 +1,4 @@
-package httpServer;
+package httpserver;
 
 import com.google.gson.reflect.TypeToken;
 import manager.InMemoryTaskManager;
@@ -18,7 +18,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static httpServer.BaseHttpHandler.TASK_UPDATED;
+import static httpserver.BaseHttpHandler.TASK_UPDATED;
 import static manager.InMemoryTaskManager.TASK_CROSS_ERROR;
 import static manager.InMemoryTaskManager.TASK_NOT_FOUND_ERR;
 import static org.junit.jupiter.api.Assertions.*;

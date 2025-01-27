@@ -1,4 +1,4 @@
-package httpServer;
+package httpserver;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -6,13 +6,13 @@ import manager.TaskManager;
 import task.Task;
 
 import java.io.IOException;
-import java.util.TreeSet;
+import java.util.List;
 
 
-public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
+public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
     TaskManager taskManager;
 
-    public PrioritizedHandler(TaskManager taskManager) {
+    public HistoryHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
 
@@ -21,8 +21,8 @@ public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
         Endpoint endpoint = getEndpoint(httpExchange.getRequestURI().getPath(), httpExchange.getRequestMethod());
 
         switch (endpoint) {
-            case GET_PRIOR: {
-                handleGetPrior(httpExchange);
+            case GET_HISTORY: {
+                handleGetHistory(httpExchange);
                 break;
             }
             default:
@@ -30,9 +30,9 @@ public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
         }
     }
 
-    private void handleGetPrior(HttpExchange httpExchange) throws IOException {
+    private void handleGetHistory(HttpExchange httpExchange) throws IOException {
         try {
-            TreeSet<Task> histTasks = taskManager.getPrioritizedTasks();
+            List<Task> histTasks = taskManager.getHistory();
             sendText(httpExchange, taskToJson(histTasks), 200);
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);

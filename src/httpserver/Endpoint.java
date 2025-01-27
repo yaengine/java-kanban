@@ -1,4 +1,4 @@
-package httpServer;
+package httpserver;
 
 public enum Endpoint {
     GET_TASKS,
