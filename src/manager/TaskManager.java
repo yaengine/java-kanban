@@ -5,6 +5,7 @@ import task.SubTask;
 import task.Task;
 
 import java.util.List;
+import java.util.TreeSet;
 
 public interface TaskManager {
     Task addTask(Task task);
@@ -41,11 +42,13 @@ public interface TaskManager {
 
     Epic getEpicById(int taskId);
 
-    boolean deleteTaskById(int taskId);
+    void deleteTaskById(int taskId);
 
-    boolean deleteSubTaskById(int taskId);
+    void deleteSubTaskById(int taskId);
 
-    boolean deleteEpicById(int taskId);
+    void deleteEpicById(int taskId);
 
     List<Task> getHistory();
+
+    TreeSet<Task> getPrioritizedTasks();
 }

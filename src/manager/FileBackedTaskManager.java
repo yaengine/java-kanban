@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
@@ -163,23 +164,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public boolean deleteTaskById(int taskId) {
-        boolean isDel = super.deleteTaskById(taskId);
+    public void deleteTaskById(int taskId) {
+        super.deleteTaskById(taskId);
         save();
-        return isDel;
     }
 
     @Override
-    public boolean deleteSubTaskById(int taskId) {
-        boolean isDel = super.deleteSubTaskById(taskId);
+    public void deleteSubTaskById(int taskId) {
+        super.deleteSubTaskById(taskId);
         save();
-        return isDel;
     }
 
     @Override
-    public boolean deleteEpicById(int taskId) {
-        boolean isDel = super.deleteEpicById(taskId);
+    public void deleteEpicById(int taskId) {
+        super.deleteEpicById(taskId);
         save();
-        return isDel;
+    }
+
+    @Override
+    public TreeSet<Task> getPrioritizedTasks() {
+        return super.getPrioritizedTasks();
     }
 }

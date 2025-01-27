@@ -3,14 +3,11 @@ package httpServer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.sun.net.httpserver.HttpExchange;
-import task.Task;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +18,12 @@ import java.util.Optional;
 
 public class BaseHttpHandler  {
     protected final static Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-    protected final static String ENDPOINT_UNKNOWN = "Такого эндпоинта не существует";
+    protected final static String ENDPOINT_UNKNOWN_ERR = "Такого эндпоинта не существует";
+    protected final static String ILLEGAL_ID_ERR = "Некорректный id";
+    protected final static String ILLEGAL_JSON_ERR = "Некорректный JSON";
+    protected final static String TASK_ADD = "Задача успешно добавлена";
+    protected final static String TASK_UPDATED = "Задача успешно обновлена";
+    protected final static String TASK_DELETED = "Задача успешно удалена";
 
     protected LocalDateTimeTypeAdapter localDateTimeTypeAdapter = new LocalDateTimeTypeAdapter();
     protected LocalDurationTypeAdapter localDurationTypeAdapter = new LocalDurationTypeAdapter();
@@ -71,11 +73,17 @@ public class BaseHttpHandler  {
             }
         } else if ("epics".equals(pathParts[1])) {
             if ("GET".equals(requestMethod)) {
-                return Endpoint.GET_EPICS;
+                if (pathParts.length == 2) {
+                    return Endpoint.GET_EPICS;
+                } else if (pathParts.length == 3) {
+                    return Endpoint.GET_EPIC_BY_ID;
+                } else if (pathParts.length == 4 && "subtasks".equals(pathParts[3])) {
+                    return Endpoint.GET_EPIC_SUBTASKS;
+                }
             } else if ("POST".equals(requestMethod)) {
                 return Endpoint.POST_EPICS;
             } else if ("DELETE".equals(requestMethod)) {
-                return  Endpoint.DELETE_EPICS;
+                return  Endpoint.DELETE_EPIC;
             }
         } else if ("history".equals(pathParts[1])) {
             if ("GET".equals(requestMethod)) {
@@ -109,20 +117,19 @@ public class BaseHttpHandler  {
 
     protected <T> String taskToJson (T task) {
 
-        GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(LocalDateTime.class, localDateTimeTypeAdapter);
-        gsonBuilder.registerTypeAdapter(Duration.class, localDurationTypeAdapter);
+        GsonBuilder gsonBuilder = new GsonBuilder().serializeNulls();
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, localDateTimeTypeAdapter.nullSafe());
+        gsonBuilder.registerTypeAdapter(Duration.class, localDurationTypeAdapter.nullSafe());
         Gson gson = gsonBuilder.create();
 
         return gson.toJson(task);
     }
 
-    protected  <T> Optional<T> JsonToTask (InputStream bodyInputStream, Type typeToken) throws IOException {
-        String body = new String(bodyInputStream.readAllBytes(), DEFAULT_CHARSET);
+    protected  <T> Optional<T> jsonToTask(String body, Type typeToken) {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
-        gsonBuilder.registerTypeAdapter(LocalDateTime.class, localDateTimeTypeAdapter);
-        gsonBuilder.registerTypeAdapter(Duration.class, localDurationTypeAdapter);
+        gsonBuilder.registerTypeAdapter(LocalDateTime.class, localDateTimeTypeAdapter.nullSafe());
+        gsonBuilder.registerTypeAdapter(Duration.class, localDurationTypeAdapter.nullSafe());
         Gson gson = gsonBuilder.create();
         return Optional.of(gson.fromJson(body, typeToken));
     }

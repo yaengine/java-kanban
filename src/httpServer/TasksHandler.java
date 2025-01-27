@@ -3,6 +3,7 @@ package httpServer;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import exceptions.NotFoundException;
 import manager.TaskManager;
 import task.Task;
 
@@ -37,7 +38,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             case DELETE_TASK:
                 handlerDeleteTasks(httpExchange);
             default:
-                sendNotFound(httpExchange, errToJson(ENDPOINT_UNKNOWN));
+                sendNotFound(httpExchange, errToJson(ENDPOINT_UNKNOWN_ERR));
         }
 
     }
@@ -55,15 +56,13 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         try {
             Optional<Integer> taskIdOpt = getId(httpExchange);
             if (taskIdOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный номер задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_ID_ERR), 400);
                 return;
             }
             Task task = taskManager.getTaskById(taskIdOpt.get());
-            if (task == null) {
-                sendNotFound(httpExchange, errToJson("Такой задачи нет"));
-                return;
-            }
             sendText(httpExchange, taskToJson(task), 200);
+        } catch (NotFoundException e) {
+            sendNotFound(httpExchange, errToJson(e.getMessage()));
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
@@ -71,24 +70,24 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
 
     private void handlePostTasks(HttpExchange httpExchange) throws IOException {
         try {
-            Optional<Task> taskOpt = JsonToTask(httpExchange.getRequestBody(), new TaskTypeToken().getType());
+            Optional<Task> taskOpt = jsonToTask(
+                    new String(httpExchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET),
+                    new TaskTypeToken().getType());
             if (taskOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный JSON задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_JSON_ERR), 400);
                 return;
             }
             Task task = taskOpt.get();
 
-            try {
-                if (task.getTaskId() == null) {
-                    taskManager.addTask(task);
-                    sendText(httpExchange, successToJson("Задача успешно добавлена"), 200);
-                } else {
-                    taskManager.updateTask(task);
-                    sendText(httpExchange, successToJson("Задача успешно обновлена"), 200);
-                }
-            } catch (IllegalArgumentException e) {
-                sendHasInteractions(httpExchange, errToJson(e.getMessage()));
+            if (task.getTaskId() == null) {
+                taskManager.addTask(task);
+                sendText(httpExchange, successToJson(TASK_ADD), 201);
+            } else {
+                taskManager.updateTask(task);
+                sendText(httpExchange, successToJson(TASK_UPDATED), 201);
             }
+        } catch (IllegalArgumentException e) {
+            sendHasInteractions(httpExchange, errToJson(e.getMessage()));
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
@@ -98,15 +97,13 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
         try {
             Optional<Integer> taskIdOpt = getId(httpExchange);
             if (taskIdOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный номер задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_ID_ERR), 400);
                 return;
             }
-            boolean isDelete = taskManager.deleteTaskById(taskIdOpt.get());
-            if (!isDelete) {
-                sendNotFound(httpExchange, errToJson("Такой задачи нет"));
-                return;
-            }
-            sendText(httpExchange, successToJson("Задача успешно удалена"), 200);
+            taskManager.deleteTaskById(taskIdOpt.get());
+            sendText(httpExchange, successToJson(TASK_DELETED), 200);
+        } catch (NotFoundException e) {
+            sendNotFound(httpExchange, errToJson(e.getMessage()));
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }

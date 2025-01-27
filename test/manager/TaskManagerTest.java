@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.NotFoundException;
 import org.junit.jupiter.api.Test;
 import task.Epic;
 import task.SubTask;
@@ -9,7 +10,7 @@ import task.TaskStatus;
 import java.io.File;
 import java.util.List;
 
-import static manager.TestConstants.*;
+import static util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
@@ -151,19 +152,37 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void deleteTaskById() {
         taskManager.deleteTaskById(taskId);
-        assertNull(taskManager.getTaskById(taskId), TASK_NOT_REMOVED);
+        boolean isTaskExists = true;
+        try {
+            taskManager.getTaskById(taskId);
+        } catch (NotFoundException e) {
+            isTaskExists = false;
+        }
+        assertFalse(isTaskExists, TASK_NOT_REMOVED);
     }
 
     @Test
     void deleteSubTaskById() {
         taskManager.deleteSubTaskById(subTaskId);
-        assertNull(taskManager.getSubTaskById(subTaskId), TASK_NOT_REMOVED);
+        boolean isTaskExists = true;
+        try {
+            taskManager.getSubTaskById(taskId);
+        } catch (NotFoundException e) {
+            isTaskExists = false;
+        }
+        assertFalse(isTaskExists, TASK_NOT_REMOVED);
     }
 
     @Test
     void deleteEpicById() {
         taskManager.deleteEpicById(epicId);
-        assertNull(taskManager.getEpicById(epicId), TASK_NOT_REMOVED);
+        boolean isTaskExists = true;
+        try {
+            taskManager.getEpicById(taskId);
+        } catch (NotFoundException e) {
+            isTaskExists = false;
+        }
+        assertFalse(isTaskExists, TASK_NOT_REMOVED);
     }
 
     @Test

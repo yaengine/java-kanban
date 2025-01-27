@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import task.Epic;
@@ -8,7 +9,7 @@ import task.Task;
 import task.TaskStatus;
 import util.Managers;
 
-import static manager.TestConstants.*;
+import static util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
@@ -37,7 +38,13 @@ class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager> {
         Task task = new Task(NEW_TASK_NAME, NEW_TASK_DESC, TaskStatus.NEW, NEW_TASK_START_TIME, NEW_TASK_DURATION);
         int taskId = taskManager.addTask(task).getTaskId();
         taskManager.updateTask(new Task(task.getName(), task.getDescription(), task.getStatus(), taskId + 1, NEW_TASK_START_TIME.plusHours(1), NEW_TASK_DURATION));
-        assertNull(taskManager.getTaskById(taskId + 1), "Удалось добавить в taskManager задачу с " +
+        boolean isTaskExists = true;
+        try {
+            taskManager.getTaskById(taskId + 1);
+        } catch (NotFoundException e) {
+            isTaskExists = false;
+        }
+        assertFalse(isTaskExists, "Удалось добавить в taskManager задачу с " +
                                                                 "опережающим счетчик номером, что приведет к конфликту");
     }
 

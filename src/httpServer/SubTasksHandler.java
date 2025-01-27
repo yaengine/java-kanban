@@ -3,6 +3,7 @@ package httpServer;
 import com.google.gson.reflect.TypeToken;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import exceptions.NotFoundException;
 import manager.TaskManager;
 import task.SubTask;
 
@@ -36,7 +37,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             case DELETE_SUBTASK:
                 handlerDeleteSubTasks(httpExchange);
             default:
-                sendNotFound(httpExchange, errToJson(ENDPOINT_UNKNOWN));
+                sendNotFound(httpExchange, errToJson(ENDPOINT_UNKNOWN_ERR));
         }
 
     }
@@ -54,15 +55,13 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
         try {
             Optional<Integer> taskIdOpt = getId(httpExchange);
             if (taskIdOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный номер задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_ID_ERR), 400);
                 return;
             }
             SubTask subTask = taskManager.getSubTaskById(taskIdOpt.get());
-            if (subTask == null) {
-                sendNotFound(httpExchange, errToJson("Такой задачи нет"));
-                return;
-            }
             sendText(httpExchange, taskToJson(subTask), 200);
+        } catch (NotFoundException e) {
+            sendNotFound(httpExchange, errToJson(e.getMessage()));
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
@@ -70,9 +69,11 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
 
     private void handlePostSubTasks(HttpExchange httpExchange) throws IOException {
         try {
-            Optional<SubTask> taskOpt = JsonToTask(httpExchange.getRequestBody(), new SubTaskTypeToken().getType());
+            Optional<SubTask> taskOpt = jsonToTask(
+                    new String(httpExchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET),
+                    new SubTaskTypeToken().getType());
             if(taskOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный JSON задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_JSON_ERR), 400);
                 return;
             }
             SubTask subTask = taskOpt.get();
@@ -80,10 +81,10 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             try {
                 if (subTask.getTaskId() == null) {
                     taskManager.addSubTask(subTask);
-                    sendText(httpExchange, successToJson("Задача успешно добавлена"), 200);
+                    sendText(httpExchange, successToJson(TASK_ADD), 201);
                 } else {
                     taskManager.updateSubTask(subTask);
-                    sendText(httpExchange, successToJson("Задача успешно обновлена"), 200);
+                    sendText(httpExchange, successToJson(TASK_UPDATED), 201);
                 }
             } catch (IllegalArgumentException e)  {
                 sendHasInteractions(httpExchange, errToJson(e.getMessage()));
@@ -97,15 +98,13 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
         try {
             Optional<Integer> taskIdOpt = getId(httpExchange);
             if(taskIdOpt.isEmpty()) {
-                sendText(httpExchange, errToJson("Некорректный номер задачи"), 400);
+                sendText(httpExchange, errToJson(ILLEGAL_ID_ERR), 400);
                 return;
             }
-            boolean isDelete = taskManager.deleteSubTaskById(taskIdOpt.get());
-            if (!isDelete) {
-                sendNotFound(httpExchange, errToJson("Такой задачи нет"));
-                return;
-            }
-            sendText(httpExchange, successToJson("Задача успешно удалена"), 200);
+            taskManager.deleteSubTaskById(taskIdOpt.get());
+            sendText(httpExchange, successToJson(TASK_DELETED), 200);
+        } catch (NotFoundException e) {
+            sendNotFound(httpExchange, errToJson(e.getMessage()));
         } catch (Exception e) {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
