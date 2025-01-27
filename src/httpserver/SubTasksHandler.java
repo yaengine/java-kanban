@@ -18,6 +18,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     public SubTasksHandler(TaskManager taskManager) {
         this.taskManager = taskManager;
     }
+
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         Endpoint endpoint = getEndpoint(httpExchange.getRequestURI().getPath(), httpExchange.getRequestMethod());
@@ -72,7 +73,8 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             Optional<SubTask> taskOpt = jsonToTask(
                     new String(httpExchange.getRequestBody().readAllBytes(), DEFAULT_CHARSET),
                     new SubTaskTypeToken().getType());
-            if(taskOpt.isEmpty()) {
+
+            if (taskOpt.isEmpty()) {
                 sendText(httpExchange, errToJson(ILLEGAL_JSON_ERR), 400);
                 return;
             }
@@ -97,7 +99,8 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
     private void handlerDeleteSubTasks(HttpExchange httpExchange) throws IOException {
         try {
             Optional<Integer> taskIdOpt = getId(httpExchange);
-            if(taskIdOpt.isEmpty()) {
+
+            if (taskIdOpt.isEmpty()) {
                 sendText(httpExchange, errToJson(ILLEGAL_ID_ERR), 400);
                 return;
             }
