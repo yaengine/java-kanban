@@ -108,7 +108,7 @@ public class TasksHandler extends BaseHttpHandler implements HttpHandler {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
     }
-}
 
-class TaskTypeToken extends TypeToken<Task> {
+    class TaskTypeToken extends TypeToken<Task> {
+    }
 }

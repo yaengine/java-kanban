@@ -109,7 +109,7 @@ public class SubTasksHandler extends BaseHttpHandler implements HttpHandler {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
     }
-}
 
-class SubTaskTypeToken extends TypeToken<SubTask> {
+    class SubTaskTypeToken extends TypeToken<SubTask> {
+    }
 }

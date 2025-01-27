@@ -133,7 +133,7 @@ public class EpicsHandler extends BaseHttpHandler implements HttpHandler {
             sendText(httpExchange, errToJson(e.getMessage()), 500);
         }
     }
-}
 
-class EpicTypeToken extends TypeToken<Epic> {
+    class EpicTypeToken extends TypeToken<Epic> {
+    }
 }
