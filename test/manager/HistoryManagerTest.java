@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import task.Task;
 import task.TaskStatus;
 
-import static manager.TestConstants.*;
+import static util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 abstract class HistoryManagerTest<T extends HistoryManager> {

@@ -8,7 +8,7 @@ import util.Managers;
 
 import java.io.*;
 
-import static manager.TestConstants.*;
+import static util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {

@@ -1,5 +1,6 @@
 package manager;
 
+import exceptions.NotFoundException;
 import task.*;
 import util.Managers;
 
@@ -15,7 +16,10 @@ public class InMemoryTaskManager implements TaskManager {
     private HistoryManager historyManager;
     private Set<Task> sortedTasks;
     private Set<SubTask> sortedSubTasks;
-    private static final String TASK_CROSS_ERROR = "Ошибка! Задача имеет пересечение по времени выполнения!";
+    public static final String TASK_CROSS_ERROR = "Ошибка! Задача имеет пересечение по времени выполнения!";
+    public static final String TASK_NOT_FOUND_ERR = "Задача не найдена";
+    public static final String SUBTASK_NOT_FOUND_ERR = "Подзадача не найдена";
+    public static final String EPIC_NOT_FOUND_ERR = "Эпик не найден";
 
     public InMemoryTaskManager() {
         this.tasks = new HashMap<>();
@@ -189,6 +193,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Task getTaskById(int taskId) {
         Task retVal = tasks.get(taskId);
+        if (retVal == null) {
+            throw new NotFoundException(TASK_NOT_FOUND_ERR);
+        }
         historyManager.add(retVal);
         return retVal;
     }
@@ -196,6 +203,9 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public SubTask getSubTaskById(int taskId) {
         SubTask retVal = subTasks.get(taskId);
+        if (retVal == null) {
+            throw new NotFoundException(SUBTASK_NOT_FOUND_ERR);
+        }
         historyManager.add(retVal);
         return retVal;
     }
@@ -203,23 +213,26 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public Epic getEpicById(int taskId) {
         Epic retVal = epics.get(taskId);
+        if (retVal == null) {
+            throw new NotFoundException(EPIC_NOT_FOUND_ERR);
+        }
         historyManager.add(retVal);
         return retVal;
     }
 
     @Override
-    public boolean deleteTaskById(int taskId) {
+    public void deleteTaskById(int taskId) {
         if (tasks.containsKey(taskId)) {
             sortedTasks.remove(tasks.get(taskId));
             tasks.remove(taskId);
             historyManager.remove(taskId);
-            return true;
+        } else {
+            throw new NotFoundException(TASK_NOT_FOUND_ERR);
         }
-        return false;
     }
 
     @Override
-    public boolean deleteSubTaskById(int taskId) {
+    public void deleteSubTaskById(int taskId) {
         if (subTasks.containsKey(taskId)) {
             sortedSubTasks.remove(subTasks.get(taskId));
             SubTask subTask = subTasks.get(taskId);
@@ -231,23 +244,27 @@ public class InMemoryTaskManager implements TaskManager {
             updateEpicStartTime(epicId);
             subTask.clearIds();
             historyManager.remove(taskId);
-            return true;
+        } else {
+            throw new NotFoundException(SUBTASK_NOT_FOUND_ERR);
         }
-        return false;
     }
 
     @Override
-    public boolean deleteEpicById(int taskId) {
+    public void deleteEpicById(int taskId) {
         if (epics.containsKey(taskId)) {
-            for (int subTaskId: getEpicById(taskId).getSubTaskIds()) {
+            Epic epic = getEpicById(taskId);
+            List<Integer> subTaskIds = epic.getSubTaskIds();
+            for (int subTaskId: subTaskIds) {
                 subTasks.remove(subTaskId);
                 historyManager.remove(subTaskId);
             }
+            subTaskIds.clear();
+
             epics.remove(taskId);
             historyManager.remove(taskId);
-            return true;
+        } else {
+            throw new NotFoundException(EPIC_NOT_FOUND_ERR);
         }
-        return false;
     }
 
     private void updateEpicStatus(int epicId) {
@@ -294,6 +311,7 @@ public class InMemoryTaskManager implements TaskManager {
                         .reduce(Duration.ZERO, Duration::plus));
     }
 
+    @Override
     public TreeSet<Task> getPrioritizedTasks() {
         TreeSet<Task> priorTasks = (TreeSet<Task>) sortedTasks;
         priorTasks.addAll(sortedSubTasks);
@@ -309,8 +327,8 @@ public class InMemoryTaskManager implements TaskManager {
                                       task.getStartTime().isBefore(t.getEndTime())) ||
                                  (t.getEndTime().isAfter(task.getStartTime()) &&
                                       t.getEndTime().isBefore(task.getEndTime())) ||
-                                 task.getStartTime() == t.getStartTime() ||
-                                      t.getEndTime() == task.getEndTime())
+                                Objects.equals(task.getStartTime(), t.getStartTime()) ||
+                                Objects.equals(t.getEndTime(), task.getEndTime()))
                          );
     }
 

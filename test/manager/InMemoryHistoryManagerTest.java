@@ -8,7 +8,7 @@ import task.Task;
 import task.TaskStatus;
 import util.Managers;
 
-import static manager.TestConstants.*;
+import static util.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InMemoryHistoryManagerTest extends HistoryManagerTest<InMemoryHistoryManager>{
